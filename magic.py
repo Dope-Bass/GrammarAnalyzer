@@ -19,5 +19,5 @@ if __name__ == '__main__':
 
     a = c_analyzer.Analyzer(namespace.text)
 
-    print(a.reform_sentences())
+    print(a.make_sense())
     a.close()
