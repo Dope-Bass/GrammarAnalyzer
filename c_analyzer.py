@@ -102,13 +102,14 @@ class Analyzer:
             if s_n > 0:
                 for _ in range(s_n-1):
                     next(it, None)
-        print(self.sentences)
+        # print(self.sentences)
+        return self.sentences
+
+    def make_sense(self):
+        splitted_sntses = self.reform_sentences()
+        # for snt in splitted_sntses:
+        tokens = [_.text for _ in tokenize(splitted_sntses[1])]
+        print(tokens)
 
     def close(self):
         self.f.close()
-
-
-a = Analyzer('test.txt')
-a.reform_sentences()
-
-a.close()
