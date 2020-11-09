@@ -108,8 +108,47 @@ class Analyzer:
     def make_sense(self):
         splitted_sntses = self.reform_sentences()
         # for snt in splitted_sntses:
-        tokens = [_.text for _ in tokenize(splitted_sntses[1])]
+        #     self.assignment(snt)
+        self.assignment(splitted_sntses[1])
+
+    def if_prep(self, snt, ptr):
+        delete_later = dict()
+        delete_later.update({ptr: 'PREP'})
+        number = ''
+        pad = ''
+        for wrd in snt[ptr+1:]:
+            tag = self.mrph.parse(wrd)[0].tag
+            # print(self.mrph.parse(wrd))
+            if ('ADJF' in tag) or ('ADJS' in tag) or ('PRTF' in tag):
+                print(tag)
+                number = tag.number
+                pad = tag.case
+                delete_later.update({snt.index(wrd): tag})
+            elif 'NOUN' in tag:
+                if ('sing' in number) or ('plur' in number):
+                    # print(tag)
+                    if (tag.number != number) and (tag.case != pad):
+                        for p in self.mrph.parse(wrd)[1:]:
+                            if (p.tag.number == number) and (p.tag.case == pad):
+                                delete_later.update({snt.index(wrd): p.tag})
+                                return delete_later
+                            else:
+                                continue
+                    else:
+                        delete_later.update({snt.index(wrd): tag})
+                        return delete_later
+                else:
+                    delete_later.update({snt.index(wrd): tag})
+                    return delete_later
+
+    def assignment(self, snt):
+        tokens = [_.text for _ in tokenize(snt)]
         print(tokens)
+        for wrd in tokens:
+            # print(self.mrph.parse(wrd)[0].tag)
+            if 'PREP' in self.mrph.parse(wrd)[0].tag:
+                # print(self.mrph.parse(wrd)[0].tag)
+                print(self.if_prep(tokens, tokens.index(wrd)))
 
     def close(self):
         self.f.close()
