@@ -1,20 +1,5 @@
 # coding=UTF-8
 
-from natasha import (
-    Segmenter,
-    MorphVocab,
-
-    NewsMorphTagger,
-    NewsSyntaxParser,
-    NewsEmbedding,
-    NewsNERTagger,
-
-    PER,
-    NamesExtractor,
-
-    Doc
-)
-
 from razdel import tokenize, sentenize
 
 from singletonMorph import Singleton
@@ -32,16 +17,6 @@ class Analyzer:
         self.mrph = Singleton().get_instance()
 
         self.s_number = 0
-
-        self.segmenter = Segmenter()
-        self.morph_vocab = MorphVocab()
-
-        self.emb = NewsEmbedding()
-        self.morph_tagger = NewsMorphTagger(self.emb)
-        self.syntax_parser = NewsSyntaxParser(self.emb)
-        self.ner_tagger = NewsNERTagger(self.emb)
-
-        self.names_extractor = NamesExtractor(self.morph_vocab)
 
         self.doc = ""
 
