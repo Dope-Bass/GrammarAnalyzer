@@ -88,7 +88,7 @@ class Analyzer:
 
     def if_prep(self, snt, ptr):
         delete_later = dict()
-        delete_later.update({ptr: 'PREP'})
+        delete_later.update({ptr: ['PREP']})
         number = ''
         pad = ''
         for wrd in snt[ptr+1:]:
@@ -105,15 +105,15 @@ class Analyzer:
                     if (tag.number != number) and (tag.case != pad):
                         for p in self.mrph.parse(wrd)[1:]:
                             if (p.tag.number == number) and (p.tag.case == pad):
-                                delete_later.update({snt.index(wrd): p.tag})
+                                delete_later.update({snt.index(wrd): [p.tag]})
                                 return delete_later
                             else:
                                 continue
                     else:
-                        delete_later.update({snt.index(wrd): tag})
+                        delete_later.update({snt.index(wrd): [tag]})
                         return delete_later
                 else:
-                    delete_later.update({snt.index(wrd): tag})
+                    delete_later.update({snt.index(wrd): [tag]})
                     return delete_later
 
     def assignment(self, snt):
@@ -123,14 +123,25 @@ class Analyzer:
             final_res.update({tokens.index(t): [t]})
         print(final_res)
         dop_obst = dict()
-        print(tokens)
         for wrd in tokens:
             tag = self.mrph.parse(wrd)[0].tag
             if 'PREP' in tag:
                 dop_obst.update(self.if_prep(tokens, tokens.index(wrd)))
+                try:
+                    sub_tag = self.mrph.parse(final_res[tokens.index(wrd)-1][0])[0].tag
+                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                        final_res[tokens.index(wrd)-1].append([sub_tag, "определение"])
+                        for (w, t) in dop_obst.items():
+                            dop_obst[w].append("определение")
+                    elif 'VERB' in sub_tag:
+                        for (w, t) in dop_obst.items():
+                            dop_obst[w].append("обстоятельство")
+                except KeyError:
+                    pass
         for (k, v) in dop_obst.items():
             final_res[k].append(v)
         print(final_res)
+        print(self.mrph.parse(final_res[1][0])[0].tag)
 
     def close(self):
         self.f.close()
