@@ -118,19 +118,20 @@ class Analyzer:
 
     def assignment(self, snt):
         tokens = [_.text for _ in tokenize(snt)]
+        static_snt = [_.text for _ in tokenize(snt)]
         final_res = dict()
         for t in tokens:
             final_res.update({tokens.index(t): [t]})
         print(final_res)
         dop_obst = dict()
-        for wrd in tokens:
+        for wrd in static_snt:
             tag = self.mrph.parse(wrd)[0].tag
             if 'PREP' in tag:
-                dop_obst.update(self.if_prep(tokens, tokens.index(wrd)))
+                dop_obst.update(self.if_prep(tokens, static_snt.index(wrd)))
                 try:
-                    sub_tag = self.mrph.parse(final_res[tokens.index(wrd)-1][0])[0].tag
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd)-1][0])[0].tag
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
-                        final_res[tokens.index(wrd)-1].append([sub_tag, "определение"])
+                        final_res[static_snt.index(wrd)-1].append([sub_tag, "определение"])
                         for (w, t) in dop_obst.items():
                             dop_obst[w].append("определение")
                     elif 'VERB' in sub_tag:
@@ -140,7 +141,14 @@ class Analyzer:
                     pass
         for (k, v) in dop_obst.items():
             final_res[k].append(v)
+            tokens.remove(final_res[k][0])
+        print(tokens)
+        for wrd in tokens:
+            tag = self.mrph.parse(wrd)[0].tag
+            if ('NOUN' in tag) and ('nomn' not in tag.case):
+                final_res[static_snt.index(wrd)].append([tag, 'дополнение'])
         print(final_res)
+        print(tokens)
         print(self.mrph.parse(final_res[1][0])[0].tag)
 
     def close(self):
