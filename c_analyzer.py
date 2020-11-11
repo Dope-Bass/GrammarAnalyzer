@@ -84,7 +84,7 @@ class Analyzer:
         splitted_sntses = self.reform_sentences()
         # for snt in splitted_sntses:
         #     self.assignment(snt)
-        self.assignment(splitted_sntses[1])
+        self.assignment(splitted_sntses[14])
 
     def if_prep(self, snt, ptr):
         delete_later = dict()
@@ -145,6 +145,23 @@ class Analyzer:
         print(tokens)
         for wrd in tokens:
             tag = self.mrph.parse(wrd)[0].tag
+            for t in self.mrph.parse(wrd):
+                # sub_tag = ''
+                try:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) - 1][0])[0].tag
+                    print(sub_tag)
+                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                        if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
+                                and (t.tag.number == sub_tag.number)\
+                                and (t.tag.case == sub_tag.case):
+                            tag = t.tag
+                except KeyError:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
+                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                        if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
+                                and (sub_tag.number == tag.number)\
+                                and (t.tag.case == sub_tag.case):
+                            tag = t.tag
             if ('NOUN' in tag) and ('nomn' not in tag.case):
                 final_res[static_snt.index(wrd)].append([tag, 'дополнение'])
         print(final_res)
