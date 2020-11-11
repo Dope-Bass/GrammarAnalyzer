@@ -118,12 +118,19 @@ class Analyzer:
 
     def assignment(self, snt):
         tokens = [_.text for _ in tokenize(snt)]
+        final_res = dict()
+        for t in tokens:
+            final_res.update({tokens.index(t): [t]})
+        print(final_res)
+        dop_obst = dict()
         print(tokens)
         for wrd in tokens:
-            # print(self.mrph.parse(wrd)[0].tag)
-            if 'PREP' in self.mrph.parse(wrd)[0].tag:
-                # print(self.mrph.parse(wrd)[0].tag)
-                print(self.if_prep(tokens, tokens.index(wrd)))
+            tag = self.mrph.parse(wrd)[0].tag
+            if 'PREP' in tag:
+                dop_obst.update(self.if_prep(tokens, tokens.index(wrd)))
+        for (k, v) in dop_obst.items():
+            final_res[k].append(v)
+        print(final_res)
 
     def close(self):
         self.f.close()
