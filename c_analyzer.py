@@ -98,10 +98,9 @@ class Analyzer:
                 print(tag)
                 number = tag.number
                 pad = tag.case
-                delete_later.update({snt.index(wrd): tag})
+                delete_later.update({snt.index(wrd): [tag, 'определение']})
             elif 'NOUN' in tag:
                 if ('sing' in number) or ('plur' in number):
-                    # print(tag)
                     if (tag.number != number) and (tag.case != pad):
                         for p in self.mrph.parse(wrd)[1:]:
                             if (p.tag.number == number) and (p.tag.case == pad):
@@ -110,6 +109,16 @@ class Analyzer:
                             else:
                                 continue
                     else:
+                        try:
+                            sub_tag = self.mrph.parse(snt[snt.index(wrd)+1])[0].tag
+                            if ('NOUN' in sub_tag) and ((sub_tag.number == number) and (sub_tag.case == pad)):
+                                delete_later.update({snt.index(wrd): [tag]})
+                                continue
+                            else:
+                                delete_later.update({snt.index(wrd): [tag]})
+                                return delete_later
+                        except KeyError:
+                            pass
                         delete_later.update({snt.index(wrd): [tag]})
                         return delete_later
                 else:
@@ -128,6 +137,7 @@ class Analyzer:
             tag = self.mrph.parse(wrd)[0].tag
             if 'PREP' in tag:
                 dop_obst.update(self.if_prep(tokens, static_snt.index(wrd)))
+                # print(self.if_prep(tokens, static_snt.index(wrd)))
                 try:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd)-1][0])[0].tag
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
@@ -140,6 +150,8 @@ class Analyzer:
                 except KeyError:
                     pass
         for (k, v) in dop_obst.items():
+            print(k)
+            print(v)
             final_res[k].append(v)
             tokens.remove(final_res[k][0])
         print(tokens)
@@ -149,12 +161,13 @@ class Analyzer:
                 # sub_tag = ''
                 try:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) - 1][0])[0].tag
-                    print(sub_tag)
+                    # print(sub_tag)
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
                         if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
                                 and (t.tag.number == sub_tag.number)\
                                 and (t.tag.case == sub_tag.case):
                             tag = t.tag
+                            print(tag)
                 except KeyError:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
