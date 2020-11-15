@@ -9,6 +9,8 @@ import defines
 class Analyzer:
 
     def __init__(self, file):
+        # Конструктор всего класса анализатора. В качестве параметра принимает имя текстового файла с текстом
+        # Также имеет обработчик слов русского языка. Обращаться к нему через член класса  --  mrph  --
 
         self.f = open(file, encoding="utf-8")
         self.text = self.f.read()
@@ -31,7 +33,8 @@ class Analyzer:
         # print(self.sentences)
 
     def split_subsnt(self, snt):
-        # print(snt)
+        # Метод делит предложение на подпредложения, в кажом из которых есть сказуемое
+
         sub_snt = ""
         lst = list()
         for lttr in snt:
@@ -57,6 +60,8 @@ class Analyzer:
         return lst
 
     def replace_snt_w_subs(self, snt, lst):
+        # Заменяет предложения на подпредложения
+
         s_n = 0
         if lst[0] != snt:
             index = self.sentences.index(snt)
@@ -79,12 +84,18 @@ class Analyzer:
         return self.sentences
 
     def make_sense(self):
+        # Возвращает набор подпредложений, в которых слова размечены по членам предложения
+
         splitted_sntses = self.reform_sentences()
         for snt in splitted_sntses:
             self.assignment(snt)
         # self.assignment(splitted_sntses[4])
 
     def if_prep(self, snt, ptr):
+        # Размечает обстоятельства и дополнения, начинающиеся с предлога
+        # Возвращает словарь в котором ключ - номер слова в подпредложении, значение - само слово с его характеристиками
+        # и ролью в предложении
+
         delete_later = dict()
         delete_later.update({ptr: ['PREP']})
         number = ''
@@ -124,6 +135,10 @@ class Analyzer:
                     return delete_later
 
     def find_dop_obst(self, static_snt, final_res, tokens):
+        # Нахожит обстоятельства и дополнения, начинающиеся с предлога
+        # Размечает слова и возвращает словарь слов дополнения/обстоятельства
+        # и финальный результат в виде исходного предложения
+
         dop_obst = dict()
         for wrd in static_snt:
             tag = self.mrph.parse(wrd)[0].tag
@@ -148,6 +163,8 @@ class Analyzer:
         return [dop_obst, final_res]
 
     def assignment(self, snt):
+        # Метод занимается непосредственно разметкой членов предложения, используя методы, описанные выше
+
         tokens = [_.text for _ in tokenize(snt)]
         static_snt = [_.text for _ in tokenize(snt)]
         final_res = dict()
@@ -217,4 +234,6 @@ class Analyzer:
         # print(self.mrph.parse(final_res[1][0])[0].tag)
 
     def close(self):
+        # Закрывает файл с текстом
+
         self.f.close()
