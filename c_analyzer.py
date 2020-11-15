@@ -18,8 +18,6 @@ class Analyzer:
 
         self.s_number = 0
 
-        self.doc = ""
-
     def split(self, snt=''):
         if not snt:
             if self.text:
@@ -82,9 +80,9 @@ class Analyzer:
 
     def make_sense(self):
         splitted_sntses = self.reform_sentences()
-        # for snt in splitted_sntses:
-        #     self.assignment(snt)
-        self.assignment(splitted_sntses[14])
+        for snt in splitted_sntses:
+            self.assignment(snt)
+        # self.assignment(splitted_sntses[20])
 
     def if_prep(self, snt, ptr):
         delete_later = dict()
@@ -95,10 +93,10 @@ class Analyzer:
             tag = self.mrph.parse(wrd)[0].tag
             # print(self.mrph.parse(wrd))
             if ('ADJF' in tag) or ('ADJS' in tag) or ('PRTF' in tag):
-                print(tag)
+                # print(tag)
                 number = tag.number
                 pad = tag.case
-                delete_later.update({snt.index(wrd): [tag, 'определение']})
+                delete_later.update({snt.index(wrd): [tag, defines.OPR]})
             elif 'NOUN' in tag:
                 if ('sing' in number) or ('plur' in number):
                     if (tag.number != number) and (tag.case != pad):
@@ -125,13 +123,7 @@ class Analyzer:
                     delete_later.update({snt.index(wrd): [tag]})
                     return delete_later
 
-    def assignment(self, snt):
-        tokens = [_.text for _ in tokenize(snt)]
-        static_snt = [_.text for _ in tokenize(snt)]
-        final_res = dict()
-        for t in tokens:
-            final_res.update({tokens.index(t): [t]})
-        print(final_res)
+    def find_dop_obst(self, static_snt, final_res, tokens):
         dop_obst = dict()
         for wrd in static_snt:
             tag = self.mrph.parse(wrd)[0].tag
@@ -141,20 +133,33 @@ class Analyzer:
                 try:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd)-1][0])[0].tag
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
-                        final_res[static_snt.index(wrd)-1].append([sub_tag, "определение"])
+                        final_res[static_snt.index(wrd)-1].append([sub_tag, defines.OPR])
                         for (w, t) in dop_obst.items():
-                            dop_obst[w].append("определение")
-                    elif 'VERB' in sub_tag:
+                            dop_obst[w].append(defines.OPR)
+                    elif ('VERB' in sub_tag) or ('PREP' in sub_tag):
                         for (w, t) in dop_obst.items():
-                            dop_obst[w].append("обстоятельство")
+                            dop_obst[w].append(defines.OBST)
                 except KeyError:
                     pass
+
+        return [dop_obst, final_res]
+
+    def assignment(self, snt):
+        tokens = [_.text for _ in tokenize(snt)]
+        static_snt = [_.text for _ in tokenize(snt)]
+        final_res = dict()
+        for t in tokens:
+            final_res.update({tokens.index(t): [t]})
+        # print(final_res)
+        reduced = self.find_dop_obst(static_snt, final_res, tokens)
+        dop_obst = reduced[0]
+        final_res = reduced[1]
         for (k, v) in dop_obst.items():
-            print(k)
-            print(v)
+            # print(k)
+            # print(v)
             final_res[k].append(v)
             tokens.remove(final_res[k][0])
-        print(tokens)
+        # print(tokens)
         for wrd in tokens:
             tag = self.mrph.parse(wrd)[0].tag
             for t in self.mrph.parse(wrd):
@@ -167,7 +172,7 @@ class Analyzer:
                                 and (t.tag.number == sub_tag.number)\
                                 and (t.tag.case == sub_tag.case):
                             tag = t.tag
-                            print(tag)
+                            # print(tag)
                 except KeyError:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
@@ -176,10 +181,18 @@ class Analyzer:
                                 and (t.tag.case == sub_tag.case):
                             tag = t.tag
             if ('NOUN' in tag) and ('nomn' not in tag.case):
-                final_res[static_snt.index(wrd)].append([tag, 'дополнение'])
+                try:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
+                    if 'VERB' not in sub_tag:
+                        final_res[static_snt.index(wrd)].append([tag, defines.DOP])
+                    else:
+                        pass
+                except KeyError:
+                    pass
+                tokens.remove(wrd)
         print(final_res)
-        print(tokens)
-        print(self.mrph.parse(final_res[1][0])[0].tag)
+        # print(tokens)
+        # print(self.mrph.parse(final_res[1][0])[0].tag)
 
     def close(self):
         self.f.close()
