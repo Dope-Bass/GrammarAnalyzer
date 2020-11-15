@@ -82,11 +82,11 @@ class Analyzer:
         splitted_sntses = self.reform_sentences()
         for snt in splitted_sntses:
             self.assignment(snt)
-        # self.assignment(splitted_sntses[20])
+        # self.assignment(splitted_sntses[14])
 
     def if_prep(self, snt, ptr):
         delete_later = dict()
-        delete_later.update({ptr: ['PREP']})
+        delete_later.update({ptr: ['PREP', defines.OBST]})
         number = ''
         pad = ''
         for wrd in snt[ptr+1:]:
@@ -96,13 +96,13 @@ class Analyzer:
                 # print(tag)
                 number = tag.number
                 pad = tag.case
-                delete_later.update({snt.index(wrd): [tag, defines.OPR]})
+                # delete_later.update({snt.index(wrd): [tag, defines.OPR]})
             elif 'NOUN' in tag:
                 if ('sing' in number) or ('plur' in number):
                     if (tag.number != number) and (tag.case != pad):
                         for p in self.mrph.parse(wrd)[1:]:
                             if (p.tag.number == number) and (p.tag.case == pad):
-                                delete_later.update({snt.index(wrd): [p.tag]})
+                                delete_later.update({snt.index(wrd): [p.tag, defines.OBST]})
                                 return delete_later
                             else:
                                 continue
@@ -110,17 +110,17 @@ class Analyzer:
                         try:
                             sub_tag = self.mrph.parse(snt[snt.index(wrd)+1])[0].tag
                             if ('NOUN' in sub_tag) and ((sub_tag.number == number) and (sub_tag.case == pad)):
-                                delete_later.update({snt.index(wrd): [tag]})
+                                delete_later.update({snt.index(wrd): [tag, defines.OBST]})
                                 continue
                             else:
-                                delete_later.update({snt.index(wrd): [tag]})
+                                delete_later.update({snt.index(wrd): [tag, defines.OBST]})
                                 return delete_later
                         except KeyError:
                             pass
-                        delete_later.update({snt.index(wrd): [tag]})
+                        delete_later.update({snt.index(wrd): [tag, defines.OBST]})
                         return delete_later
                 else:
-                    delete_later.update({snt.index(wrd): [tag]})
+                    delete_later.update({snt.index(wrd): [tag, defines.OBST]})
                     return delete_later
 
     def find_dop_obst(self, static_snt, final_res, tokens):
@@ -133,10 +133,10 @@ class Analyzer:
                 try:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd)-1][0])[0].tag
                     if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
-                        final_res[static_snt.index(wrd)-1].append([sub_tag, defines.OPR])
+                        # final_res[static_snt.index(wrd)-1].append([sub_tag, defines.OPR])
                         for (w, t) in dop_obst.items():
                             dop_obst[w].append(defines.OPR)
-                    elif ('VERB' in sub_tag) or ('PREP' in sub_tag):
+                    elif 'VERB' in sub_tag:
                         for (w, t) in dop_obst.items():
                             dop_obst[w].append(defines.OBST)
                 except KeyError:
@@ -154,12 +154,13 @@ class Analyzer:
         reduced = self.find_dop_obst(static_snt, final_res, tokens)
         dop_obst = reduced[0]
         final_res = reduced[1]
+        # print(tokens, '+++++++++++++++++')
         for (k, v) in dop_obst.items():
             # print(k)
             # print(v)
             final_res[k].append(v)
             tokens.remove(final_res[k][0])
-        # print(tokens)
+        # print(tokens, '==================')
         for wrd in tokens:
             tag = self.mrph.parse(wrd)[0].tag
             for t in self.mrph.parse(wrd):
@@ -190,6 +191,24 @@ class Analyzer:
                 except KeyError:
                     pass
                 tokens.remove(wrd)
+        # for (k, v) in dop_obst.items():
+        #     final_res[k].append(v)
+        #     tokens.remove(final_res[k][0])
+        # print(final_res)
+        # print(tokens, '-------------------')
+        for wrd in tokens:
+            info = self.mrph.parse(wrd)[0]
+            if ('VERB' in info.tag) and (wrd != info.normal_form):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.SKAZ])
+                continue
+            if ('NOUN' in info.tag) and (info.tag.case == 'nomn'):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.POD])
+                continue
+            if ('NOUN' in info.tag) and (info.tag.case != 'nomn'):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.DOP])
+                continue
+            if ('ADJS' in info.tag) or ('ADJF' in info.tag):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.OPR])
         print(final_res)
         # print(tokens)
         # print(self.mrph.parse(final_res[1][0])[0].tag)
