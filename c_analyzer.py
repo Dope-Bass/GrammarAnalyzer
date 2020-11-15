@@ -82,11 +82,11 @@ class Analyzer:
         splitted_sntses = self.reform_sentences()
         for snt in splitted_sntses:
             self.assignment(snt)
-        # self.assignment(splitted_sntses[14])
+        # self.assignment(splitted_sntses[4])
 
     def if_prep(self, snt, ptr):
         delete_later = dict()
-        delete_later.update({ptr: ['PREP', defines.OBST]})
+        delete_later.update({ptr: ['PREP']})
         number = ''
         pad = ''
         for wrd in snt[ptr+1:]:
@@ -113,14 +113,14 @@ class Analyzer:
                                 delete_later.update({snt.index(wrd): [tag, defines.OBST]})
                                 continue
                             else:
-                                delete_later.update({snt.index(wrd): [tag, defines.OBST]})
+                                delete_later.update({snt.index(wrd): [tag]})
                                 return delete_later
                         except KeyError:
                             pass
-                        delete_later.update({snt.index(wrd): [tag, defines.OBST]})
+                        delete_later.update({snt.index(wrd): [tag]})
                         return delete_later
                 else:
-                    delete_later.update({snt.index(wrd): [tag, defines.OBST]})
+                    delete_later.update({snt.index(wrd): [tag]})
                     return delete_later
 
     def find_dop_obst(self, static_snt, final_res, tokens):
@@ -136,7 +136,10 @@ class Analyzer:
                         # final_res[static_snt.index(wrd)-1].append([sub_tag, defines.OPR])
                         for (w, t) in dop_obst.items():
                             dop_obst[w].append(defines.OPR)
-                    elif 'VERB' in sub_tag:
+                    # elif 'VERB' in sub_tag:
+                    #     for (w, t) in dop_obst.items():
+                    #         dop_obst[w].append(defines.OBST)
+                    else:
                         for (w, t) in dop_obst.items():
                             dop_obst[w].append(defines.OBST)
                 except KeyError:
