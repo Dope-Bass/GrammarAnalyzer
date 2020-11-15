@@ -143,7 +143,7 @@ class Analyzer:
                         for (w, t) in dop_obst.items():
                             dop_obst[w].append(defines.OBST)
                 except KeyError:
-                    pass
+                    dop_obst[0].append(defines.OBST)
 
         return [dop_obst, final_res]
 
