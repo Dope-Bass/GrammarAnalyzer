@@ -17,7 +17,8 @@ if __name__ == '__main__':
     p = create_parser()
     namespace = p.parse_args(sys.argv[1:])
 
-    a = c_analyzer.Analyzer(namespace.text)
+    # a = c_analyzer.Analyzer(namespace.text)
+    a = c_analyzer.Analyzer('test.txt')
 
     print(a.make_sense())
     a.close()

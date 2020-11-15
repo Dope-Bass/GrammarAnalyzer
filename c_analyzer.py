@@ -1,20 +1,5 @@
 # coding=UTF-8
 
-from natasha import (
-    Segmenter,
-    MorphVocab,
-
-    NewsMorphTagger,
-    NewsSyntaxParser,
-    NewsEmbedding,
-    NewsNERTagger,
-
-    PER,
-    NamesExtractor,
-
-    Doc
-)
-
 from razdel import tokenize, sentenize
 
 from singletonMorph import Singleton
@@ -32,18 +17,6 @@ class Analyzer:
         self.mrph = Singleton().get_instance()
 
         self.s_number = 0
-
-        self.segmenter = Segmenter()
-        self.morph_vocab = MorphVocab()
-
-        self.emb = NewsEmbedding()
-        self.morph_tagger = NewsMorphTagger(self.emb)
-        self.syntax_parser = NewsSyntaxParser(self.emb)
-        self.ner_tagger = NewsNERTagger(self.emb)
-
-        self.names_extractor = NamesExtractor(self.morph_vocab)
-
-        self.doc = ""
 
     def split(self, snt=''):
         if not snt:
@@ -107,9 +80,141 @@ class Analyzer:
 
     def make_sense(self):
         splitted_sntses = self.reform_sentences()
-        # for snt in splitted_sntses:
-        tokens = [_.text for _ in tokenize(splitted_sntses[1])]
-        print(tokens)
+        for snt in splitted_sntses:
+            self.assignment(snt)
+        # self.assignment(splitted_sntses[4])
+
+    def if_prep(self, snt, ptr):
+        delete_later = dict()
+        delete_later.update({ptr: ['PREP']})
+        number = ''
+        pad = ''
+        for wrd in snt[ptr+1:]:
+            tag = self.mrph.parse(wrd)[0].tag
+            # print(self.mrph.parse(wrd))
+            if ('ADJF' in tag) or ('ADJS' in tag) or ('PRTF' in tag):
+                # print(tag)
+                number = tag.number
+                pad = tag.case
+                # delete_later.update({snt.index(wrd): [tag, defines.OPR]})
+            elif 'NOUN' in tag:
+                if ('sing' in number) or ('plur' in number):
+                    if (tag.number != number) and (tag.case != pad):
+                        for p in self.mrph.parse(wrd)[1:]:
+                            if (p.tag.number == number) and (p.tag.case == pad):
+                                delete_later.update({snt.index(wrd): [p.tag, defines.OBST]})
+                                return delete_later
+                            else:
+                                continue
+                    else:
+                        try:
+                            sub_tag = self.mrph.parse(snt[snt.index(wrd)+1])[0].tag
+                            if ('NOUN' in sub_tag) and ((sub_tag.number == number) and (sub_tag.case == pad)):
+                                delete_later.update({snt.index(wrd): [tag, defines.OBST]})
+                                continue
+                            else:
+                                delete_later.update({snt.index(wrd): [tag]})
+                                return delete_later
+                        except KeyError:
+                            pass
+                        delete_later.update({snt.index(wrd): [tag]})
+                        return delete_later
+                else:
+                    delete_later.update({snt.index(wrd): [tag]})
+                    return delete_later
+
+    def find_dop_obst(self, static_snt, final_res, tokens):
+        dop_obst = dict()
+        for wrd in static_snt:
+            tag = self.mrph.parse(wrd)[0].tag
+            if 'PREP' in tag:
+                dop_obst.update(self.if_prep(tokens, static_snt.index(wrd)))
+                # print(self.if_prep(tokens, static_snt.index(wrd)))
+                try:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd)-1][0])[0].tag
+                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                        # final_res[static_snt.index(wrd)-1].append([sub_tag, defines.OPR])
+                        for (w, t) in dop_obst.items():
+                            dop_obst[w].append(defines.OPR)
+                    # elif 'VERB' in sub_tag:
+                    #     for (w, t) in dop_obst.items():
+                    #         dop_obst[w].append(defines.OBST)
+                    else:
+                        for (w, t) in dop_obst.items():
+                            dop_obst[w].append(defines.OBST)
+                except KeyError:
+                    dop_obst[0].append(defines.OBST)
+
+        return [dop_obst, final_res]
+
+    def assignment(self, snt):
+        tokens = [_.text for _ in tokenize(snt)]
+        static_snt = [_.text for _ in tokenize(snt)]
+        final_res = dict()
+        for t in tokens:
+            final_res.update({tokens.index(t): [t]})
+        # print(final_res)
+        reduced = self.find_dop_obst(static_snt, final_res, tokens)
+        dop_obst = reduced[0]
+        final_res = reduced[1]
+        # print(tokens, '+++++++++++++++++')
+        for (k, v) in dop_obst.items():
+            # print(k)
+            # print(v)
+            final_res[k].append(v)
+            tokens.remove(final_res[k][0])
+        # print(tokens, '==================')
+        for wrd in tokens:
+            tag = self.mrph.parse(wrd)[0].tag
+            for t in self.mrph.parse(wrd):
+                # sub_tag = ''
+                try:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) - 1][0])[0].tag
+                    # print(sub_tag)
+                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                        if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
+                                and (t.tag.number == sub_tag.number)\
+                                and (t.tag.case == sub_tag.case):
+                            tag = t.tag
+                            # print(tag)
+                except KeyError:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
+                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                        if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
+                                and (sub_tag.number == tag.number)\
+                                and (t.tag.case == sub_tag.case):
+                            tag = t.tag
+            if ('NOUN' in tag) and ('nomn' not in tag.case):
+                try:
+                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
+                    if 'VERB' not in sub_tag:
+                        final_res[static_snt.index(wrd)].append([tag, defines.DOP])
+                    else:
+                        pass
+                except KeyError:
+                    pass
+                tokens.remove(wrd)
+        # for (k, v) in dop_obst.items():
+        #     final_res[k].append(v)
+        #     tokens.remove(final_res[k][0])
+        # print(final_res)
+        # print(tokens, '-------------------')
+        for wrd in tokens:
+            info = self.mrph.parse(wrd)[0]
+            if ('VERB' in info.tag) and (wrd != info.normal_form):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.SKAZ])
+                continue
+            if ('NOUN' in info.tag) and (info.tag.case == 'nomn'):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.POD])
+                continue
+            if ('NOUN' in info.tag) and (info.tag.case != 'nomn'):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.DOP])
+                continue
+            if ('ADJS' in info.tag) or ('ADJF' in info.tag):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.OPR])
+        print(final_res)
+        # print(tokens)
+        # print(self.mrph.parse(final_res[1][0])[0].tag)
 
     def close(self):
         self.f.close()
