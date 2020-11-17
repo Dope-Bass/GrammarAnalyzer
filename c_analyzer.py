@@ -9,6 +9,8 @@ import defines
 class Analyzer:
 
     def __init__(self, file):
+        # Конструктор всего класса анализатора. В качестве параметра принимает имя текстового файла с текстом
+        # Также имеет обработчик слов русского языка. Обращаться к нему через член класса  --  mrph  --
 
         self.f = open(file, encoding="utf-8")
         self.text = self.f.read()
@@ -31,7 +33,8 @@ class Analyzer:
         # print(self.sentences)
 
     def split_subsnt(self, snt):
-        # print(snt)
+        # Метод делит предложение на подпредложения, в кажом из которых есть сказуемое
+
         sub_snt = ""
         lst = list()
         for lttr in snt:
@@ -57,6 +60,8 @@ class Analyzer:
         return lst
 
     def replace_snt_w_subs(self, snt, lst):
+        # Заменяет предложения на подпредложения
+
         s_n = 0
         if lst[0] != snt:
             index = self.sentences.index(snt)
@@ -79,12 +84,20 @@ class Analyzer:
         return self.sentences
 
     def make_sense(self):
+        # Возвращает набор подпредложений, в которых слова размечены по членам предложения
+
         splitted_sntses = self.reform_sentences()
+        result = []
         for snt in splitted_sntses:
-            self.assignment(snt)
-        # self.assignment(splitted_sntses[4])
+            result.append(self.assignment(snt))
+        return result
+        # self.assignment(splitted_sntses[-3])
 
     def if_prep(self, snt, ptr):
+        # Размечает обстоятельства и дополнения, начинающиеся с предлога
+        # Возвращает словарь в котором ключ - номер слова в подпредложении, значение - само слово с его характеристиками
+        # и ролью в предложении
+
         delete_later = dict()
         delete_later.update({ptr: ['PREP']})
         number = ''
@@ -120,10 +133,14 @@ class Analyzer:
                         delete_later.update({snt.index(wrd): [tag]})
                         return delete_later
                 else:
-                    delete_later.update({snt.index(wrd): [tag]})
+                    delete_later.update({snt.index(wrd): [tag, defines.OBST]})
                     return delete_later
 
     def find_dop_obst(self, static_snt, final_res, tokens):
+        # Нахожит обстоятельства и дополнения, начинающиеся с предлога
+        # Размечает слова и возвращает словарь слов дополнения/обстоятельства
+        # и финальный результат в виде исходного предложения
+
         dop_obst = dict()
         for wrd in static_snt:
             tag = self.mrph.parse(wrd)[0].tag
@@ -148,11 +165,19 @@ class Analyzer:
         return [dop_obst, final_res]
 
     def assignment(self, snt):
+        # Метод занимается непосредственно разметкой членов предложения, используя методы, описанные выше
+
         tokens = [_.text for _ in tokenize(snt)]
         static_snt = [_.text for _ in tokenize(snt)]
         final_res = dict()
         for t in tokens:
-            final_res.update({tokens.index(t): [t]})
+            # try:
+            #     if ('PNCT' in self.mrph.parse(t)[0]) or ('PRCL' in self.mrph.parse(t)[0]):
+            #         final_res.update({tokens.index(t): [t, '']})
+            #     else:
+            #         final_res.update({tokens.index(t): [t, '']})
+            # except AttributeError:
+            final_res.update({tokens.index(t): [t, self.mrph.parse(t)[0].normal_form]})
         # print(final_res)
         reduced = self.find_dop_obst(static_snt, final_res, tokens)
         dop_obst = reduced[0]
@@ -178,21 +203,24 @@ class Analyzer:
                             tag = t.tag
                             # print(tag)
                 except KeyError:
-                    sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
-                    if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
-                        if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
-                                and (sub_tag.number == tag.number)\
-                                and (t.tag.case == sub_tag.case):
-                            tag = t.tag
+                    try:
+                        sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
+                        if ('ADJF' in sub_tag) or ('ADJS' in sub_tag):
+                            if (('sing' in sub_tag.number) or ('plur' in sub_tag.number)) \
+                                    and (sub_tag.number == tag.number)\
+                                    and (t.tag.case == sub_tag.case):
+                                tag = t.tag
+                    except KeyError:
+                        pass
             if ('NOUN' in tag) and ('nomn' not in tag.case):
                 try:
                     sub_tag = self.mrph.parse(final_res[static_snt.index(wrd) + 1][0])[0].tag
                     if 'VERB' not in sub_tag:
                         final_res[static_snt.index(wrd)].append([tag, defines.DOP])
                     else:
-                        pass
+                        final_res[static_snt.index(wrd)].append([tag, defines.OBST])
                 except KeyError:
-                    pass
+                    final_res[static_snt.index(wrd)].append([tag, defines.DOP])
                 tokens.remove(wrd)
         # for (k, v) in dop_obst.items():
         #     final_res[k].append(v)
@@ -204,17 +232,39 @@ class Analyzer:
             if ('VERB' in info.tag) and (wrd != info.normal_form):
                 final_res[static_snt.index(wrd)].append([info.tag, defines.SKAZ])
                 continue
-            if ('NOUN' in info.tag) and (info.tag.case == 'nomn'):
-                final_res[static_snt.index(wrd)].append([info.tag, defines.POD])
+            if 'INFN' in info.tag:
+                final_res[static_snt.index(wrd)].append([info.tag, defines.OBST])
                 continue
+            if ('NOUN' in info.tag) and (info.tag.case == 'nomn'):
+                try:
+                    if 'VERB' not in self.mrph.parse(final_res[static_snt.index(wrd) - 1][0])[0].tag:
+                        final_res[static_snt.index(wrd)].append([info.tag, defines.POD])
+                        continue
+                    else:
+                        final_res[static_snt.index(wrd)].append([info.tag, defines.OBST])
+                        continue
+                except KeyError:
+                    final_res[static_snt.index(wrd)].append([info.tag, defines.POD])
+                    continue
             if ('NOUN' in info.tag) and (info.tag.case != 'nomn'):
                 final_res[static_snt.index(wrd)].append([info.tag, defines.DOP])
                 continue
             if ('ADJS' in info.tag) or ('ADJF' in info.tag):
                 final_res[static_snt.index(wrd)].append([info.tag, defines.OPR])
-        print(final_res)
+                continue
+            if ('NPRO' in info.tag) and (info.tag.case == 'nomn'):
+                final_res[static_snt.index(wrd)].append([info.tag, defines.POD])
+                continue
+            if 'ADVB' in info.tag:
+                final_res[static_snt.index(wrd)].append([info.tag, defines.OBST])
+                continue
+            final_res[static_snt.index(wrd)].append([info.tag, defines.UNKN])
+        # print(final_res)
+        return final_res
         # print(tokens)
         # print(self.mrph.parse(final_res[1][0])[0].tag)
 
     def close(self):
+        # Закрывает файл с текстом
+
         self.f.close()
