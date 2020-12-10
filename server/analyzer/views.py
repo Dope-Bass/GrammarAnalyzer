@@ -1,8 +1,8 @@
-from django.http import HttpResponse
 import sys
 import os
 sys.path.append(sys.path[0].replace('server', ''))
 
+from django.http import HttpResponse
 import c_analyzer as a
 
 
