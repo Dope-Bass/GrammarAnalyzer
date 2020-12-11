@@ -1,7 +1,6 @@
 # coding=UTF-8
 import sys
 import os
-sys.path.append(os.path.join(sys.path[0].replace('server', ''), 'venv', 'Lib', 'site-packages'))
 
 from razdel import tokenize, sentenize
 

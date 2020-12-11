@@ -3,10 +3,6 @@ K
 server/analyzer/__init__.py,8\f\8f13797089897b057d751e4ff5f3b3cc9682cb4a
 B
 server/__init__.py,a\7\a7f3d5a8f4744da6bf2b2dbadc1d1b92d0c9b103
-G
-server/analyzer/urls.py,a\4\a4fa8d17102aa65469ec61848f44700e7e2ba087
-H
-server/analyzer/views.py,b\6\b66923357498e80d5ce70dc1961d972405fc2570
 E
 server/server/urls.py,a\4\a42dd7cbb7aedd346a6e316738e695a1dc11117b
 @
@@ -35,3 +31,11 @@ A
 server/db.sqlite3,5\8\58ca63759aba88e93c8e40f5dc7160b7c93b66b2
 =
 c_analyzer.py,6\d\6d498f6162e62ed9263c52da4e96cf2682f70d8e
+Z
+*server/analyzer/migrations/0001_initial.py,3\1\317f382f060289b0a9df01eb2885d96a3d970c52
+K
+server/analyzer/api/urls.py,b\a\ba50c81354d4fed1cc1254631b1da58af0d3d3f2
+L
+server/analyzer/api/views.py,9\b\9b5113c7d805c4fdfbd6e2f14f4bad6b47d3563f
+R
+"server/analyzer/api/serializers.py,4\d\4d2f2c641501730378307445f9d7682dad4983fc

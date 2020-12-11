@@ -2,6 +2,8 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+sys.path.append(os.path.join(sys.path[0].replace('server', ''), 'venv', 'Lib', 'site-packages'))
+sys.path.append(sys.path[0].replace('server', ''))
 
 
 def main():

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from server.analyzer.api import views
 
 urlpatterns = [
     path('', views.resp, name='resp'),

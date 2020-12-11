@@ -1,13 +1,40 @@
+import os, sys
+
 from django.db import models
+import c_analyzer as a
+
+general_defs = {
+    'word': 0,
+    'normal_form': 1,
+    'tag_list': 2
+}
+
+tag_list_defs = {
+    'tag': 0,
+    'role': 1
+}
 
 
 class Text(models.Model):
 
     text = models.TextField(blank=False)
 
+    @classmethod
+    def create(cls, t):
+
+        for instance in cls.objects.all():
+            instance.delete()
+
+        text = cls(text=t)
+
+        for w in a.Analyzer(os.path.join(sys.path[0].replace('server', ''), 'test.txt')).make_sense():
+            Words.create(w, text)
+
     def __str__(self):
 
-        return self.text
+        return {
+            'text': self.text
+        }
 
 
 class Words(models.Model):
@@ -33,6 +60,21 @@ class Words(models.Model):
 
     # binding to text that word is from
     parent_text = models.ForeignKey(Text, on_delete=models.CASCADE)
+
+    @classmethod
+    def create(cls, wrd, text):
+
+        cls(
+            word=wrd[general_defs['word']],
+            normal_form=wrd[general_defs['normal_form']],
+            case=wrd[general_defs['tag_list']][tag_list_defs['tag']].case,
+            gender=wrd[general_defs['tag_list']][tag_list_defs['tag']].gender,
+            number=wrd[general_defs['tag_list']][tag_list_defs['tag']].number,
+            pers=wrd[general_defs['tag_list']][tag_list_defs['tag']].person,
+            voice=wrd[general_defs['tag_list']][tag_list_defs['tag']].voice,
+            role=wrd[general_defs['tag_list']][tag_list_defs['role']],
+            parent_text=text
+        )
 
     def __str__(self):
 
