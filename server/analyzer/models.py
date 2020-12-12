@@ -1,6 +1,8 @@
-import os, sys
+import os
+import sys
 
 from django.db import models
+
 import c_analyzer as a
 
 general_defs = {

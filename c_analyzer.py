@@ -1,6 +1,7 @@
 # coding=UTF-8
 import sys
 import os
+import warnings as w
 
 from razdel import tokenize, sentenize
 
@@ -10,16 +11,23 @@ import defines
 
 class Analyzer:
 
-    def __init__(self, file):
+    def __init__(self, file='', txt=''):
         # Конструктор всего класса анализатора. В качестве параметра принимает имя текстового файла с текстом
         # Также имеет обработчик слов русского языка. Обращаться к нему через член класса  --  mrph  --
+        if not txt:
+            if file:
+                try:
+                    with open(file, encoding="utf-8") as self.f:
+                        self.text = self.f.read()
+                except FileNotFoundError:
+                    w.warn('File not found')
+            else:
+                raise ValueError('No arguments has been provided to the class instance')
+        else:
+            self.text = txt
 
-        self.f = open(file, encoding="utf-8")
-        self.text = self.f.read()
         self.sentences = list()
-
         self.mrph = Singleton().get_instance()
-
         self.s_number = 0
 
     def split(self, snt=''):
