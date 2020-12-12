@@ -1,7 +1,8 @@
 from django.urls import path
 
-from server.analyzer.api import views
+from .views import WordViewSet, TextViewSet
 
 urlpatterns = [
-    path('', views.resp, name='resp'),
+    path('words/', WordViewSet.as_view()),
+    path('text/', TextViewSet.as_view())
 ]

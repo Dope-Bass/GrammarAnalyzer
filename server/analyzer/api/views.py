@@ -6,27 +6,45 @@ import c_analyzer as a
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from server.analyzer.models import Words, Text
+from ..models import Words, Text
+
+
+def make_json(query):
+    return {
+        'word': query.word,
+        'normal_form': query.normal_form,
+        'speech_part': query.speech_part,
+        'case': query.case,
+        'gender': query.gender,
+        'number': query.number,
+        'person': query.pers,
+        'voice': query.voice,
+        'role': query.role
+    }
 
 
 class WordViewSet(APIView):
 
-    def get(self, request):
+    @staticmethod
+    def get(request):
 
-        words = [data for data in Words.objects.all()]
+        words = [make_json(data) for data in Words.objects.all()]
         return Response(words)
 
 
 class TextViewSet(APIView):
 
     @staticmethod
-    def get(self, request):
+    def get(request):
 
         text = Text.objects.all()
-        return Response(text)
+        return Response({'text': _.text} for _ in text)
 
-    def post(self, request):
-        pass
+    @staticmethod
+    def post(request):
+
+        Text.create(request.data.get('text'))
+        return Response('ok')
 
 
 def resp(request):
