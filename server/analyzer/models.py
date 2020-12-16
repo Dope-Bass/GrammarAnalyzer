@@ -47,24 +47,24 @@ class Words(models.Model):
     normal_form = models.TextField()
 
     # NOUN or VERB or ADJF or PREP and so on
-    speech_part = models.TextField(default='none', null=True)
+    speech_part = models.TextField(default=None, null=True)
 
-    case = models.TextField(default='none', null=True)
+    case = models.TextField(default=None, null=True)
 
     # masc or femn or neut or ms-f as masc|femn at the same time
-    gender = models.TextField(default='none', null=True)
+    gender = models.TextField(default=None, null=True)
 
     # plur or sing
-    number = models.TextField(default='none', null=True)
+    number = models.TextField(default=None, null=True)
 
     # 1per or 2per or 3per
-    pers = models.TextField(default='none', null=True)
+    pers = models.TextField(default=None, null=True)
 
     # actv or pssv
-    voice = models.TextField(default='none', null=True)
+    voice = models.TextField(default=None, null=True)
 
     # role in sentence
-    role = models.TextField(default='none')
+    role = models.TextField(default=None)
 
     # binding to text that word is from
     parent_text = models.ForeignKey(Text, on_delete=models.CASCADE)
