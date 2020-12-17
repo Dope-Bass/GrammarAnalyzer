@@ -3,6 +3,11 @@ import pymorphy2
 
 class Singleton(object):
 
+    """
+    Класс для выдачи единственного экземпляра анализатора слов
+
+    """
+
     __instance = None
 
     def __init__(self):

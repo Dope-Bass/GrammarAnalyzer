@@ -6,6 +6,13 @@ import argparse
 import c_analyzer
 
 
+"""
+    Скрипт для запуска анализатора из командной строки
+    
+    Как с ним работать написано в README
+"""
+
+
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--text", default="")
