@@ -19,10 +19,24 @@ tag_list_defs = {
 
 class Text(models.Model):
 
+    """
+    Модель для базы с текстом. Обозначает набор полей в каждой строке таблицы
+
+    """
+
     text = models.TextField(blank=False)
 
     @classmethod
     def create(cls, t):
+        """
+        Метод, который создает поле в таблице текста. Также анализирует текст и создает поля в таблице слов
+
+        :param t: текст
+        :return: void
+        """
+
+        # При записи нового текста старый удаляется.
+        # С ним трутся все слвоа из таблицы слов, которые с этим текстом связаны по внешнему ключу
 
         for instance in cls.objects.all():
             instance.delete()
@@ -42,6 +56,11 @@ class Text(models.Model):
 
 
 class Words(models.Model):
+
+    """
+    Модель для базы со словами. Обозначает набор полей в каждой строке таблицы
+
+    """
 
     word = models.TextField()
     normal_form = models.TextField()
@@ -71,6 +90,14 @@ class Words(models.Model):
 
     @classmethod
     def create(cls, wrd, text):
+
+        """
+        Создает строку в таблице слов
+
+        :param wrd: слово (как оно выглядит см README)
+        :param text: указатель на строку в таблице текста, с которой связаны слова
+        :return: void
+        """
 
         if not isinstance(wrd[general_defs['tag_list']][tag_list_defs['tag']], str):
 

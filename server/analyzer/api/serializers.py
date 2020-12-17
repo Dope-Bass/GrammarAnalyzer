@@ -3,6 +3,13 @@ from server.analyzer.models import Words, Text
 
 
 class WordsSerializer(serializers.ModelSerializer):
+
+    """
+    Сериализатор для удобного представления модели в виде json.
+    По идее, работает только в админке сервера. Больше нигде не юзал
+
+    """
+
     class Meta:
         model = Words
         fields = ('id', 'word', 'normal_form', 'case', 'gender', 'number',
@@ -10,6 +17,13 @@ class WordsSerializer(serializers.ModelSerializer):
 
 
 class TextSerializer(serializers.ModelSerializer):
+
+    """
+    Сериализатор для удобного представления модели в виде json.
+    По идее, работает только в админке сервера. Больше нигде не юзал
+
+    """
+
     class Meta:
         model = Text
         fields = ('id', 'text')
